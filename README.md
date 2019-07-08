@@ -32,8 +32,6 @@ It's a good idea to install nodemon because it can restart the app automatically
 npm install -g nodemon
 ```
 
-End with an example of getting some data out of the system or using it for a little demo
-
 ## Use this app
 
 Please see below to use five features in this app.
