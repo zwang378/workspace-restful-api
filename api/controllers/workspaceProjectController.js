@@ -69,6 +69,13 @@ exports.create_a_workspace = function(req, res) {
 
           var rowData = workspaceId + ',' + req.body.name + ',' + req.body.org_id + '\n';
 
+          if (req.body.name === undefined || req.body.org_id === undefined) {
+            console.log('Not enough info!');
+            res.statusCode = 400;
+            res.json({ error: ['Miss necessary info!'] });
+            return;
+          }
+
           fs.appendFile('./data/workspace.csv', rowData, function(err) {
             if (err) {
               console.log(err);
