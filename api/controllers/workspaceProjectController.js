@@ -5,7 +5,7 @@ const csv = require('csv-parser');
 
 // This workspaceId is for creating a workspace,
 // and it is a variable to remember the last row id to avoid
-// looking for the last row id next time.
+// looking for the last row id next time when the app is still running.
 var workspaceId;
 
 exports.list_all_workspaces = function(req, res) {
@@ -33,8 +33,6 @@ exports.list_all_workspaces = function(req, res) {
 };
 
 exports.create_a_workspace = function(req, res) {
-  // TODO: take care of no such file?
-
   var path = './data/workspace.csv';
 
   // This does not check if there is a valid csv file.
@@ -46,11 +44,13 @@ exports.create_a_workspace = function(req, res) {
       fs.writeFile(path, workspace_header, function (err) {
         if (err) {
           console.log(err);
+          res.statusCode = 500;
+          res.json({ error: ['Could not write the workspace!'] });
         }
       });
     }
   
-    // If workspaceId is undefined, it means no one call this function.
+    // If workspaceId is undefined, it means no one calls this function.
     // Then it finds the last row id to decide the new id.
     if (workspaceId == undefined) {
       var lastRow;
@@ -70,7 +70,11 @@ exports.create_a_workspace = function(req, res) {
           var rowData = workspaceId + ',' + req.body.name + ',' + req.body.org_id + '\n';
 
           fs.appendFile('./data/workspace.csv', rowData, function(err) {
-            if (err) throw err;
+            if (err) {
+              console.log(err);
+              res.statusCode = 500;
+              res.json({ error: ['Could not create the workspace!'] });
+            }
           });
 
           res.statusCode = 200;
