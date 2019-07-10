@@ -3,107 +3,47 @@
 const fs = require('fs');
 const csv = require('csv-parser');
 
-// This workspaceId is for creating a workspace,
-// and it is a variable to remember the last row id to avoid
-// looking for the last row id next time when the app is still running.
-var workspaceId;
-
 exports.list_all_workspaces = function(req, res) {
-  var workspaces = [];
+  var path = './data/workspace.csv';
+  var header = 'id,name,org_id,existed\n';
   
-  fs.createReadStream('./data/workspace.csv')
-    .on('error', (err) => {
-      console.log(err);
-      res.statusCode = 500;
-      res.json({ 
-        message: ['Could not find your workspace!']
-      });
+  checkFileExistencePromise(path, header)
+    .then(function(path) {
+      return extractExistedRowDataPromise(path);
     })
-    .pipe(csv())
-    .on('data', (row) => {
-      workspaces.push(row);
-    })
-    .on('end', () => {
+    .then(function(result) {
       res.statusCode = 200;
       res.json({ 
-        message: ['Workspace listed!'],
-        workspace: workspaces
-      });
+        message: ['success'],
+        workspaces: result
+       });
+    })
+    .catch(function(err) {
+      res.statusCode = 500;
+      res.json({ message: [err] });
     });
 };
 
 exports.create_a_workspace = function(req, res) {
   var path = './data/workspace.csv';
+  var header = 'id,name,org_id,existed\n';
 
-  // This does not check if there is a valid csv file.
-  fs.access(path, fs.F_OK, (err) => {
-    // If the workspace file doesn't exist, create one.
-    if (err) {      
-      var workspace_header = 'id,name,org_id\n';
-
-      fs.writeFile(path, workspace_header, function (err) {
-        if (err) {
-          console.log(err);
-          res.statusCode = 500;
-          res.json({ error: ['Could not write the workspace!'] });
-        }
-      });
-    }
-  
-    // If workspaceId is undefined, it means no one calls this function.
-    // Then it finds the last row id to decide the new id.
-    if (workspaceId == undefined) {
-      var lastRow;
-
-      fs.createReadStream('./data/workspace.csv')
-        .pipe(csv())
-        .on('data', (row) => {
-          lastRow = row;
-        })
-        .on('end', () => {
-          if (lastRow === undefined) {
-            workspaceId = 1;
-          } else {
-            workspaceId = parseInt(lastRow.id, 10) + 1;
-          }
-
-          var rowData = workspaceId + ',' + req.body.name + ',' + req.body.org_id + '\n';
-
-          if (req.body.name === undefined || req.body.org_id === undefined) {
-            console.log('Not enough info!');
-            res.statusCode = 400;
-            res.json({ error: ['Miss necessary info!'] });
-            return;
-          }
-
-          fs.appendFile('./data/workspace.csv', rowData, function(err) {
-            if (err) {
-              console.log(err);
-              res.statusCode = 500;
-              res.json({ error: ['Could not create the workspace!'] });
-            }
-          });
-
-          res.statusCode = 200;
-          res.json({ success: ['Workspace created!'] });
-        });
-    } else {
-      workspaceId += 1;
-
-      var rowData = workspaceId + ',' + req.body.name + ',' + req.body.org_id + '\n';
-
-      fs.appendFile('./data/workspace.csv', rowData, function(err) {
-        if (err) {
-          console.log(err);
-          res.statusCode = 500;
-          res.json({ error: ['Could not create the workspace!'] });
-        }
-      });
-
+  checkFileExistencePromise(path, header)
+    .then(function(path) {
+      return findLastRowIdPromise(path);
+    })
+    .then(function(newRowId) {
+      var rowData = newRowId + ',' + req.body.name + ',' + req.body.org_id + ',' + '1' + '\n';
+      return appendRowDataPromise(path, rowData);
+    })
+    .then(function(result) {
       res.statusCode = 200;
-      res.json({ success: ['Workspace created!'] });
-    }
-  });
+      res.json({ message: [result] });
+    })
+    .catch(function(err) {
+      res.statusCode = 500;
+      res.json({ message: [err] });
+    });
 };
 
 // This function does not check if it is an existing user id
@@ -112,139 +52,252 @@ exports.create_a_workspace = function(req, res) {
 // This function does not check whether the workspaceId is valid or not,
 // and we can implement it by iterating the workspace file.
 exports.add_an_existing_user_to_a_workspace = function(req, res) {
-  var rowData = req.body.userId + ',' + req.params.workspaceId + '\n';
   var path = './data/workspace_collaborator.csv';
+  var header = 'user_id,workspace_id\n';
+  var rowData = req.body.userId + ',' + req.params.workspaceId + '\n';
 
-  fs.access(path, fs.F_OK, (err) => {
-    // If the workspace_collaborator file doesn't exist, create one.
-    if (err) {      
-      var workspace_collaborator_header = 'user_id,workspace_id\n';
-
-      fs.writeFile(path, workspace_collaborator_header, function (err) {
-        if (err) {
-          console.log(err);
-          res.statusCode = 500;
-          res.json({ error: ['Could not create workspace_collaborator file!'] });
-        }
-      });
-    }
-
-    fs.appendFile('./data/workspace_collaborator.csv', rowData, function(err) {
-      if (err) {
-        console.log(err);
-        res.statusCode = 500;
-        res.json({ error: ['Could not add the existing user!'] });
-      }
+  checkFileExistencePromise(path, header)
+    .then(function(path) {
+      return appendRowDataPromise(path, rowData);
+    })
+    .then(function(result) {
+      res.statusCode = 200;
+      res.json({ message: [result] });
+    })
+    .catch(function(err) {
+      res.statusCode = 500;
+      res.json({ message: [err] });
     });
-  });
-
-  res.statusCode = 200;
-  res.json({ success: ['Existing user added!'] });
 };
 
 exports.list_all_collaborators = function(req, res) {
-  var collaborators = [];
+  var sourcePath = './data/workspace_collaborator.csv';
+  var targetPath = './data/user.csv';
+  var header = 'user_id,workspace_id\n';
+  var condition = req.params.workspaceId;
 
-  fs.createReadStream('./data/workspace_collaborator.csv')
-    .pipe(csv())
-    .on('data', (row) => {
-      if (row.workspace_id === req.params.workspaceId) {
-        collaborators.push(parseInt(row.user_id, 10));
-      }
+  checkFileExistencePromise(sourcePath, header)
+    .then(function(path) {
+      return collectTargetIdsPromise(path, condition);
     })
-    .on('end', () => {
-      
-      collaborators.sort();
-      var index = 0;
-      var output = [];
-
-      fs.createReadStream('./data/user.csv')
-        .pipe(csv())
-        .on('data', (row) => {
-          if (parseInt(row.id, 10) === collaborators[index]) {
-            // I may need to make rows be JSON format.
-            output.push(row);
-            index += 1;
-          }
-        })
-        .on('end', () => {
-          res.statusCode = 200;
-          res.json({ collaborators: output });
-        });
+    .then(function(targetIds) {
+      return filterRowDataPromise(targetPath, targetIds);
+    })
+    .then(function(result) {
+      res.statusCode = 200;
+      res.json({ 
+        message: ['success'],
+        users: result
+       });
+    })
+    .catch(function(err) {
+      res.statusCode = 500;
+      res.json({ message: [err] });
     });
 };
 
 exports.delete_a_workspace = function(req, res) {
-  var workspace_head_temp = 'id,name,org_id\n';
+  var path = './data/workspace.csv';
+  var header = 'id,name,org_id,existed\n';
+  var targetId = req.body.workspaceId;
 
-  fs.writeFile('./data/workspace_temp.csv', workspace_head_temp, function (err) {
-    if (err) {
-      console.log(err);
-      res.statusCode = 500;
-      res.json({ error: ['Could not create the temp workspace file!'] });
-    }
-  });
-
-  fs.createReadStream('./data/workspace.csv')
-    .pipe(csv())
-    .on('data', (data) => {
-      var rowData = data.id + ',' + data.name + ',' + data.org_id + '\n';
-
-      if (data.id != req.body.workspaceId) {
-        fs.appendFile('./data/workspace_temp.csv', rowData, function(err) {
-          if (err) {
-            console.log(err);
-            res.statusCode = 500;
-            res.json({ error: ['Could not append row info!'] });
-          }
-        });
-      }
+  checkFileExistencePromise(path, header)
+    .then(function(path) {
+      return extractAllRowDataPromise(path);
     })
-    .on('end', () => {
-      fs.rename('./data/workspace_temp.csv', './data/workspace.csv', (err) => {
-        if (err) {
-          console.log(err);
-          res.statusCode = 500;
-          res.json({ error: ['Could not rename the temp workspace file!'] });
-        }
-      });
-    });
-
-  var workspace_collaborator_head_temp = 'user_id,workspace_id\n';
-
-  fs.writeFile('./data/workspace_collaborator_temp.csv', workspace_collaborator_head_temp, function (err) {
-    if (err) {
-      console.log(err);
-      res.statusCode = 500;
-      res.json({ error: ['Could not create the temp relationship file!'] });
-    }
-  });
-
-  fs.createReadStream('./data/workspace_collaborator.csv')
-    .pipe(csv())
-    .on('data', (data) => {
-      var rowData = data.user_id + ',' + data.workspace_id + '\n';
-
-      if (data.workspace_id != req.body.workspaceId) {
-        fs.appendFile('./data/workspace_collaborator_temp.csv', rowData, function(err) {
-          if (err) {
-            console.log(err);
-            res.statusCode = 500;
-            res.json({ error: ['Could not append row info!'] });
-          }
-        });
-      }
+    .then(function(rows) {
+      return hideRowDataPromise(header, rows, targetId);
     })
-    .on('end', () => {
-      fs.rename('./data/workspace_collaborator_temp.csv', './data/workspace_collaborator.csv', (err) => {
-        if (err) {
-          console.log(err);
-          res.statusCode = 500;
-          res.json({ error: ['Could not rename the temp relationship file!'] });
-        }
-      });
+    .then(function(rowData) {
+      return writeDataPromise(path, rowData);
+    })
+    .then(function(result) {
+      res.statusCode = 200;
+      res.json({ 
+        message: [result]
+       });
+    })
+    .catch(function(err) {
+      res.statusCode = 500;
+      res.json({ message: [err] });
     });
-
-    res.statusCode = 200;
-    res.json({ success: ['Workspace deleted!'] });
 }
+
+var checkFileExistencePromise = function(path, header) {
+  return new Promise(function(resolve, reject) {
+    fs.access(path, fs.F_OK, (unavailable) => {
+      if (unavailable) {        
+        fs.writeFile(path, header, function (err) {
+          if (err) reject(err);
+        });
+      }
+
+      resolve(path);
+    });
+  });
+};
+
+var extractAllRowDataPromise = function(path) {
+  return new Promise(function(resolve, reject) {
+    var rows = [];
+  
+    fs.createReadStream(path)
+      .on('error', (err) => {
+        reject(err);
+      })
+      .pipe(csv())
+      .on('data', (row) => {
+        rows.push(row);
+      })
+      .on('end', () => {
+        resolve(rows);
+      });
+  });
+};
+
+var extractExistedRowDataPromise = function(path) {
+  return new Promise(function(resolve, reject) {
+    var rows = [];
+  
+    fs.createReadStream(path)
+      .on('error', (err) => {
+        reject(err);
+      })
+      .pipe(csv())
+      .on('data', (row) => {
+        if (row['existed'] == '1') {
+          rows.push(row);
+        }
+      })
+      .on('end', () => {
+        resolve(rows);
+      });
+  });
+};
+
+var collectTargetIdsPromise = function(path, condition) {
+  return new Promise(function(resolve, reject) {
+    var targetIds = [];
+
+    fs.createReadStream(path)
+    .on('error', (err) => {
+      reject(err);
+    })
+    .pipe(csv())
+    .on('data', (row) => {
+      if (row.workspace_id == condition) {
+        targetIds.push(parseInt(row.user_id, 10));
+      }
+    })
+    .on('end', () => {
+      resolve(targetIds.sort());
+    });
+  });
+};
+
+var filterRowDataPromise = function(path, targetIds) {
+  return new Promise(function(resolve, reject) {
+    var rows = [];
+    var index = 0;
+  
+    fs.createReadStream(path)
+      .on('error', (err) => {
+        reject(err);
+      })
+      .pipe(csv())
+      .on('data', (row) => {
+        if (parseInt(row.id, 10) == targetIds[index]) {
+          rows.push(row);
+          if (index + 1 < targetIds.length) {
+            index += 1;
+          }
+        }
+      })
+      .on('end', () => {
+        resolve(rows);
+      });
+  });
+};
+
+var findLastRowIdPromise = function(path) {
+  return new Promise(function(resolve, reject) {
+    var lastRow;
+
+    fs.createReadStream('./data/workspace.csv')
+      .on('error', (err) => {
+        reject(err);
+      })
+      .pipe(csv())
+      .on('data', (row) => {
+        lastRow = row;
+      })
+      .on('end', () => {
+        var newWorkspaceId;
+
+        if (lastRow === undefined) {
+          newWorkspaceId = 1;
+        } else {
+          newWorkspaceId = parseInt(lastRow.id, 10) + 1;
+        }
+
+        resolve(newWorkspaceId);
+      });
+  });
+};
+
+var appendRowDataPromise = function(path, rowData) {
+  return new Promise(function(resolve, reject) {
+    fs.appendFile(path, rowData, function(err) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve('success');
+      }
+    });
+  });
+};
+
+var hideRowDataPromise = function(header, rows, targetID) {
+  return new Promise(function(resolve, reject) {
+    var i;
+    var item;
+
+    for (i = 0; i < rows.length; i++) {
+      item = rows[i];
+
+      if (item.id == targetID) {
+        if (item.existed == 0) {
+          reject('no such item');
+        } else {
+          item.existed = 0;
+          break;
+        }
+      }
+    }
+
+    var stringForWriting = header;
+
+    for (i = 0; i < rows.length; i++) {
+      for (var key in rows[i]) {
+        stringForWriting += rows[i][key];
+        stringForWriting += ',';
+      }
+      stringForWriting = stringForWriting.slice(0, -1);
+      stringForWriting += '\n';
+    }
+
+    resolve(stringForWriting);
+  });
+};
+
+var writeDataPromise = function(path, data) {
+  return new Promise(function(resolve, reject) {
+    fs.writeFile(path, data, function(err) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve('success');
+      }
+    });
+  });
+};
