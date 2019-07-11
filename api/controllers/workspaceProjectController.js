@@ -8,8 +8,8 @@ exports.list_all_workspaces = function(req, res) {
   var header = 'id,name,org_id,existed\n';
   
   checkFileExistencePromise(path, header)
-    .then(function(path) {
-      return extractExistedRowDataPromise(path);
+    .then(function(availablePath) {
+      return extractExistedRowDataPromise(availablePath);
     })
     .then(function(result) {
       res.statusCode = 200;
@@ -29,8 +29,8 @@ exports.create_a_workspace = function(req, res) {
   var header = 'id,name,org_id,existed\n';
 
   checkFileExistencePromise(path, header)
-    .then(function(path) {
-      return findLastRowIdPromise(path);
+    .then(function(availablePath) {
+      return findNewRowIdPromise(availablePath);
     })
     .then(function(newRowId) {
       var rowData = newRowId + ',' + req.body.name + ',' + req.body.org_id + ',' + '1' + '\n';
@@ -57,8 +57,8 @@ exports.add_an_existing_user_to_a_workspace = function(req, res) {
   var rowData = req.body.userId + ',' + req.params.workspaceId + '\n';
 
   checkFileExistencePromise(path, header)
-    .then(function(path) {
-      return appendRowDataPromise(path, rowData);
+    .then(function(availablePath) {
+      return appendRowDataPromise(availablePath, rowData);
     })
     .then(function(result) {
       res.statusCode = 200;
@@ -77,11 +77,11 @@ exports.list_all_collaborators = function(req, res) {
   var condition = req.params.workspaceId;
 
   checkFileExistencePromise(sourcePath, header)
-    .then(function(path) {
-      return collectTargetIdsPromise(path, condition);
+    .then(function(availablePath) {
+      return collectTargetIdsPromise(availablePath, 'workspace_id', condition, 'user_id');
     })
     .then(function(targetIds) {
-      return filterRowDataPromise(targetPath, targetIds);
+      return filterRowDataPromise(targetPath, 'id', targetIds);
     })
     .then(function(result) {
       res.statusCode = 200;
@@ -97,19 +97,34 @@ exports.list_all_collaborators = function(req, res) {
 };
 
 exports.delete_a_workspace = function(req, res) {
-  var path = './data/workspace.csv';
-  var header = 'id,name,org_id,existed\n';
+  var workspacePath = './data/workspace.csv';
+  var workspaceHeader = 'id,name,org_id,existed\n';
+  var workspaceCollaboratorPath = './data/workspace_collaborator.csv';
+  var workspaceCollaboratorHeader = 'user_id,workspace_id,existed\n';
   var targetId = req.body.workspaceId;
 
-  checkFileExistencePromise(path, header)
-    .then(function(path) {
-      return extractAllRowDataPromise(path);
+  checkFileExistencePromise(workspacePath, workspaceHeader)
+    .then(function(availablePath) {
+      return extractAllRowDataPromise(availablePath);
     })
     .then(function(rows) {
-      return hideRowDataPromise(header, rows, targetId);
+      return hideRowDataPromise(workspaceHeader, rows, 'id', targetId);
     })
     .then(function(rowData) {
-      return writeDataPromise(path, rowData);
+      return overwriteDataPromise(workspacePath, rowData);
+    })
+    .then(function(result) {
+      // console.log('operation 1: ' + result);
+      return checkFileExistencePromise(workspaceCollaboratorPath, workspaceCollaboratorHeader);
+    })
+    .then(function(availablePath) {
+      return extractAllRowDataPromise(availablePath);
+    })
+    .then(function(rows) {
+      return hideRowDataPromise(workspaceCollaboratorHeader, rows, 'workspace_id', targetId);
+    })
+    .then(function(rowData) {
+      return overwriteDataPromise(workspaceCollaboratorPath, rowData);
     })
     .then(function(result) {
       res.statusCode = 200;
@@ -123,6 +138,13 @@ exports.delete_a_workspace = function(req, res) {
     });
 }
 
+/**
+ * Make the target path available. If it exists, let it be.
+ * If not, create one.
+ * @param  {String} path   The path you want to check out the availability
+ * @param  {String} header The header you want have if it is going to generate new file
+ * @return {String}        The path that is available
+ */
 var checkFileExistencePromise = function(path, header) {
   return new Promise(function(resolve, reject) {
     fs.access(path, fs.F_OK, (unavailable) => {
@@ -137,6 +159,11 @@ var checkFileExistencePromise = function(path, header) {
   });
 };
 
+/**
+ * Extract all row data
+ * @param  {String}     path The file that you want to extract data from
+ * @return {JSON array}      All row data which is an array of JSON objects
+ */
 var extractAllRowDataPromise = function(path) {
   return new Promise(function(resolve, reject) {
     var rows = [];
@@ -155,6 +182,11 @@ var extractAllRowDataPromise = function(path) {
   });
 };
 
+/**
+ * Extract row data that marked as existed
+ * @param  {String}     path The file that you want to extract data from
+ * @return {JSON array}      All row data which is an array of JSON objects
+ */
 var extractExistedRowDataPromise = function(path) {
   return new Promise(function(resolve, reject) {
     var rows = [];
@@ -175,7 +207,14 @@ var extractExistedRowDataPromise = function(path) {
   });
 };
 
-var collectTargetIdsPromise = function(path, condition) {
+/**
+ * Collect row IDs that match your condition
+ * @param  {String}       path      The file that you want to collect conditions from
+ * @param  {String}       targetCol The column name where your condition is
+ * @param  {String}       condition The target string that you look for
+ * @return {Number array}           All sorted IDs that match your condition
+ */
+var collectTargetIdsPromise = function(path, targetCol, condition, resultCol) {
   return new Promise(function(resolve, reject) {
     var targetIds = [];
 
@@ -185,8 +224,8 @@ var collectTargetIdsPromise = function(path, condition) {
     })
     .pipe(csv())
     .on('data', (row) => {
-      if (row.workspace_id == condition) {
-        targetIds.push(parseInt(row.user_id, 10));
+      if (row[targetCol] == condition && row['existed'] == 1) {
+        targetIds.push(parseInt(row[resultCol], 10));
       }
     })
     .on('end', () => {
@@ -195,7 +234,14 @@ var collectTargetIdsPromise = function(path, condition) {
   });
 };
 
-var filterRowDataPromise = function(path, targetIds) {
+/**
+ * Find row IDs that match your target IDs
+ * @param  {String}      path      The file that contains data you are looking for
+ * @param  {String}      targetCol The column name where your target is
+ * @param  {String}      targetIds The target IDs that contain your condition
+ * @return {JSON array}            Row data that match your condition
+ */
+var filterRowDataPromise = function(path, targetCol, targetIds) {
   return new Promise(function(resolve, reject) {
     var rows = [];
     var index = 0;
@@ -206,10 +252,12 @@ var filterRowDataPromise = function(path, targetIds) {
       })
       .pipe(csv())
       .on('data', (row) => {
-        if (parseInt(row.id, 10) == targetIds[index]) {
-          rows.push(row);
+        if (parseInt(row[targetCol], 10) == targetIds[index]) {
           if (index + 1 < targetIds.length) {
             index += 1;
+          }
+          if (row['existed'] == 1) {
+           rows.push(row);
           }
         }
       })
@@ -219,11 +267,16 @@ var filterRowDataPromise = function(path, targetIds) {
   });
 };
 
-var findLastRowIdPromise = function(path) {
+/**
+ * Find the last row ID plus one for you, so you can add new row data based on this
+ * @param  {String} path The file that you want to find the last row ID plus one
+ * @return {Number}      The last row ID plus one
+ */
+var findNewRowIdPromise = function(path) {
   return new Promise(function(resolve, reject) {
     var lastRow;
 
-    fs.createReadStream('./data/workspace.csv')
+    fs.createReadStream(path)
       .on('error', (err) => {
         reject(err);
       })
@@ -232,19 +285,25 @@ var findLastRowIdPromise = function(path) {
         lastRow = row;
       })
       .on('end', () => {
-        var newWorkspaceId;
+        var newId;
 
         if (lastRow === undefined) {
-          newWorkspaceId = 1;
+          newId = 1;
         } else {
-          newWorkspaceId = parseInt(lastRow.id, 10) + 1;
+          newId = parseInt(lastRow.id, 10) + 1;
         }
 
-        resolve(newWorkspaceId);
+        resolve(newId);
       });
   });
 };
 
+/**
+ * Append row data to your target file
+ * @param  {String} path    The file that you want to append your data to
+ * @param  {String} rowData Row data you want them to be appended
+ * @return {String}         A message to let you know it is successful or not
+ */
 var appendRowDataPromise = function(path, rowData) {
   return new Promise(function(resolve, reject) {
     fs.appendFile(path, rowData, function(err) {
@@ -257,7 +316,15 @@ var appendRowDataPromise = function(path, rowData) {
   });
 };
 
-var hideRowDataPromise = function(header, rows, targetID) {
+/**
+ * Make data "exsited" 0 instead of removing data
+ * @param  {String}     header    The header of your target file
+ * @param  {JSON array} rows      Data which contain data entry you want to delete
+ * @param  {String}     targetCol The column that contains the item you want to delete
+ * @param  {String}     targetID  The ID of the item that you want to delete
+ * @return {String}               A string has the whole csv file which is ready to be written to a file
+ */
+var hideRowDataPromise = function(header, rows, targetCol, targetID) {
   return new Promise(function(resolve, reject) {
     var i;
     var item;
@@ -265,13 +332,8 @@ var hideRowDataPromise = function(header, rows, targetID) {
     for (i = 0; i < rows.length; i++) {
       item = rows[i];
 
-      if (item.id == targetID) {
-        if (item.existed == 0) {
-          reject('no such item');
-        } else {
-          item.existed = 0;
-          break;
-        }
+      if (item[targetCol] == targetID) {
+        item.existed = 0;
       }
     }
 
@@ -290,7 +352,13 @@ var hideRowDataPromise = function(header, rows, targetID) {
   });
 };
 
-var writeDataPromise = function(path, data) {
+/**
+ * Receive a string and write it on a file
+ * @param  {String} path The file that you want to write your data to
+ * @param  {String} data Data you want them to be written
+ * @return {String}      A message to let you know it is successful or not
+ */
+var overwriteDataPromise = function(path, data) {
   return new Promise(function(resolve, reject) {
     fs.writeFile(path, data, function(err) {
       if (err) {
