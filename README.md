@@ -43,7 +43,7 @@ You need to provide name and org_ig. The id for the new workspace would be gener
 For example, you can create a new workspace by using the following command. The workspace name is Eleven, and this workspace belongs to org_id 9.
 
 ```
-$ curl -d "name=Eleven&org_id=9" -X POST http://localhost:3000/workspace
+$ curl -d "name=One&org_id=1" -X POST http://localhost:3000/workspace
 {"message":["success"]}
 ```
 
@@ -76,7 +76,7 @@ $ curl -X GET http://localhost:3000/workspace/1/user
 
 ### Delete a workspace
 
-The following command would delete the workspaceId 2 from the workspace, and delete the relationship with users at the same time.
+The following command would delete the workspaceId 1 from the workspace, and delete the relationship with users at the same time.
 
 ```
 curl -d "workspaceId=1" -X DELETE http://localhost:3000/workspace
