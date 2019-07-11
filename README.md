@@ -1,6 +1,6 @@
 # Workspace RESTful API
 
-This project follows MVC design. Since data entries are in csv files, this project uses csv files to read and write data.
+This project follows MVC design. Since data entries are in CSV files, this project uses CSV files to read and write data.
 
 This RESTful API performs the following functions.
 
