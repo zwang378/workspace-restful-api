@@ -146,9 +146,9 @@ exports.deleteAWorkspace = function(req, res) {
 /**
  * Make the target path available. If it exists, let it be.
  * If not, create one.
- * @param  {String} path   The path you want to check out the availability
- * @param  {String} header The header you want have if it is going to generate new file
- * @return {String}        The path that is available
+ * @param  {string} path   The path you want to check out the availability
+ * @param  {string} header The header you want have if it is going to generate new file
+ * @return {string}        The path that is available
  */
 var checkFileExistencePromise = function(path, header) {
   return new Promise(function(resolve, reject) {
@@ -166,7 +166,7 @@ var checkFileExistencePromise = function(path, header) {
 
 /**
  * Extract all row data
- * @param  {String}     path The file that you want to extract data from
+ * @param  {string}     path The file that you want to extract data from
  * @return {JSON array}      All row data which is an array of JSON objects
  */
 var extractAllRowDataPromise = function(path) {
@@ -189,7 +189,7 @@ var extractAllRowDataPromise = function(path) {
 
 /**
  * Extract row data that marked as existed
- * @param  {String}     path The file that you want to extract data from
+ * @param  {string}     path The file that you want to extract data from
  * @return {JSON array}      All row data which is an array of JSON objects
  */
 var extractExistedRowDataPromise = function(path) {
@@ -214,10 +214,10 @@ var extractExistedRowDataPromise = function(path) {
 
 /**
  * Collect row IDs that match your condition
- * @param  {String}       path      The file that you want to collect conditions from
- * @param  {String}       targetCol The column name where your condition is
- * @param  {String}       condition The target string that you look for
- * @return {Number array}           All sorted IDs that match your condition
+ * @param  {string}       path      The file that you want to collect conditions from
+ * @param  {string}       targetCol The column name where your condition is
+ * @param  {string}       condition The target string that you look for
+ * @return {number array}           All sorted IDs that match your condition
  */
 var collectTargetIdsPromise = function(path, targetCol, condition, resultCol) {
   return new Promise(function(resolve, reject) {
@@ -241,9 +241,9 @@ var collectTargetIdsPromise = function(path, targetCol, condition, resultCol) {
 
 /**
  * Find row IDs that match your target IDs
- * @param  {String}      path      The file that contains data you are looking for
- * @param  {String}      targetCol The column name where your target is
- * @param  {String}      targetIds The target IDs that contain your condition
+ * @param  {string}      path      The file that contains data you are looking for
+ * @param  {string}      targetCol The column name where your target is
+ * @param  {string}      targetIds The target IDs that contain your condition
  * @return {JSON array}            Row data that match your condition
  */
 var filterRowDataPromise = function(path, targetCol, targetIds) {
@@ -274,8 +274,8 @@ var filterRowDataPromise = function(path, targetCol, targetIds) {
 
 /**
  * Find the last row ID plus one for you, so you can add new row data based on this
- * @param  {String} path The file that you want to find the last row ID plus one
- * @return {Number}      The last row ID plus one
+ * @param  {string} path The file that you want to find the last row ID plus one
+ * @return {number}      The last row ID plus one
  */
 var findNewRowIdPromise = function(path) {
   return new Promise(function(resolve, reject) {
@@ -305,9 +305,9 @@ var findNewRowIdPromise = function(path) {
 
 /**
  * Append row data to your target file
- * @param  {String} path    The file that you want to append your data to
- * @param  {String} rowData Row data you want them to be appended
- * @return {String}         A message to let you know it is successful or not
+ * @param  {string} path    The file that you want to append your data to
+ * @param  {string} rowData Row data you want them to be appended
+ * @return {string}         A message to let you know it is successful or not
  */
 var appendRowDataPromise = function(path, rowData) {
   return new Promise(function(resolve, reject) {
@@ -323,11 +323,11 @@ var appendRowDataPromise = function(path, rowData) {
 
 /**
  * Make data "existed" 0 instead of removing data
- * @param  {String}     header    The header of your target file
+ * @param  {string}     header    The header of your target file
  * @param  {JSON array} rows      Data which contain data entry you want to delete
- * @param  {String}     targetCol The column that contains the item you want to delete
- * @param  {String}     targetID  The ID of the item that you want to delete
- * @return {String}               A string has the whole csv file which is ready to be written to a file
+ * @param  {string}     targetCol The column that contains the item you want to delete
+ * @param  {string}     targetID  The ID of the item that you want to delete
+ * @return {string}               A string has the whole csv file which is ready to be written to a file
  */
 var hideRowDataPromise = function(header, rows, targetCol, targetID) {
   return new Promise(function(resolve, reject) {
@@ -359,9 +359,9 @@ var hideRowDataPromise = function(header, rows, targetCol, targetID) {
 
 /**
  * Receive a string and write it on a file
- * @param  {String} path The file that you want to write your data to
- * @param  {String} data Data you want them to be written
- * @return {String}      A message to let you know it is successful or not
+ * @param  {string} path The file that you want to write your data to
+ * @param  {string} data Data you want them to be written
+ * @return {string}      A message to let you know it is successful or not
  */
 var overwriteDataPromise = function(path, data) {
   return new Promise(function(resolve, reject) {
@@ -377,9 +377,9 @@ var overwriteDataPromise = function(path, data) {
 
 /**
  * Find the organization that owns this workspace
- * @param  {String} workspaceOrganization The workspace file that contains organizations
- * @param  {String} workspaceId           The workspace that is owned by the organization we are going to find
- * @return {String}                       Organization ID which own this workspace
+ * @param  {string} workspaceOrganization The workspace file that contains organizations
+ * @param  {string} workspaceId           The workspace that is owned by the organization we are going to find
+ * @return {string}                       Organization ID which own this workspace
  */
 var findOrganizationBasedOnWorkspace = function(workspaceOrganization, workspaceId) {
   return new Promise(function(resolve, reject) {
@@ -407,10 +407,10 @@ var findOrganizationBasedOnWorkspace = function(workspaceOrganization, workspace
  
 /**
  * Check whether this user is at this organization or not
- * @param  {String} userOrganization The user/organization file that contains their relationship
- * @param  {String} userId           The user you want to check out
- * @param  {String} orgId            The organization you want to check out
- * @return {String}                  The result that shows the relationship exists or not
+ * @param  {string} userOrganization The user/organization file that contains their relationship
+ * @param  {string} userId           The user you want to check out
+ * @param  {string} orgId            The organization you want to check out
+ * @return {string}                  The result that shows the relationship exists or not
  */
 var checkUserOrganizationRelationship = function(userOrganization, userId, orgId) {
   return new Promise(function(resolve, reject) {
