@@ -48,8 +48,8 @@ exports.createAWorkspace = function(req, res) {
 
 exports.addAnExistingUserToAWorkspace = function(req, res) {
   var path = './data/workspace_collaborator.csv';
-  var header = 'user_id,workspace_id\n';
-  var rowData = req.body.userId + ',' + req.params.workspaceId + '\n';
+  var header = 'user_id,workspace_id,existed\n';
+  var rowData = req.body.userId + ',' + req.params.workspaceId + ',' + '1' + '\n';
 
   checkFileExistencePromise(path, header)
     .then(function(availablePath) {
