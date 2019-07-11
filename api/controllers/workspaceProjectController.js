@@ -47,13 +47,23 @@ exports.createAWorkspace = function(req, res) {
 };
 
 exports.addAnExistingUserToAWorkspace = function(req, res) {
-  var path = './data/workspace_collaborator.csv';
+  var WCPath = './data/workspace_collaborator.csv';
+  var WOPath = './data/workspace.csv';
+  var UOPath = './data/user_organization.csv';
   var header = 'user_id,workspace_id,existed\n';
   var rowData = req.body.userId + ',' + req.params.workspaceId + ',' + '1' + '\n';
 
-  checkFileExistencePromise(path, header)
+  checkFileExistencePromise(WCPath, header)
     .then(function(availablePath) {
-      return appendRowDataPromise(availablePath, rowData);
+      // console.log(availablePath);
+      return findOrganizationBasedOnWorkspace(WOPath, req.params.workspaceId);
+    })
+    .then(function(orgIdWithWorkspace) {
+      return checkUserOrganizationRelationship(UOPath, req.body.userId, orgIdWithWorkspace);
+    })
+    .then(function(isAllowed) {
+      // console.log(isAllowed);
+      return appendRowDataPromise(WCPath, rowData);
     })
     .then(function(result) {
       res.statusCode = 200;
@@ -362,5 +372,53 @@ var overwriteDataPromise = function(path, data) {
         resolve('success');
       }
     });
+  });
+};
+
+var findOrganizationBasedOnWorkspace = function(workspaceOrganization, workspaceId) {
+  return new Promise(function(resolve, reject) {
+    var orgIdResult;
+
+    fs.createReadStream(workspaceOrganization)
+      .on('error', (err) => {
+        reject(err);
+      })
+      .pipe(csv())
+      .on('data', (row) => {
+        if (row['id'] == workspaceId && row['existed'] == 1) {
+          orgIdResult = row['org_id'];
+        }
+      })
+      .on('end', () => {
+        if (orgIdResult == undefined) {
+          reject('Could not find your workspace');
+        } else {
+          resolve(orgIdResult);
+        }
+      });
+  });
+};
+ 
+var checkUserOrganizationRelationship = function(userOrganization, userId, orgId) {
+  return new Promise(function(resolve, reject) {
+    var userOrganizationRelationship = 0;
+
+    fs.createReadStream(userOrganization)
+      .on('error', (err) => {
+        reject(err);
+      })
+      .pipe(csv())
+      .on('data', (row) => {
+        if (row['user_id'] == userId && row['org_id'] == orgId && row['existed'] == 1) {
+          userOrganizationRelationship = 1;
+        }
+      })
+      .on('end', () => {
+        if (userOrganizationRelationship == 1) {
+          resolve(1);
+        } else {
+          reject('Please add this user to the corresponding organization first');
+        }
+      });
   });
 };
