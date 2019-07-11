@@ -375,6 +375,12 @@ var overwriteDataPromise = function(path, data) {
   });
 };
 
+/**
+ * Find the organization that owns this workspace
+ * @param  {String} workspaceOrganization The workspace file that contains organizations
+ * @param  {String} workspaceId           The workspace that is owned by the organization we are going to find
+ * @return {String}                       Organization ID which own this workspace
+ */
 var findOrganizationBasedOnWorkspace = function(workspaceOrganization, workspaceId) {
   return new Promise(function(resolve, reject) {
     var orgIdResult;
@@ -399,6 +405,13 @@ var findOrganizationBasedOnWorkspace = function(workspaceOrganization, workspace
   });
 };
  
+/**
+ * Check whether this user is at this organization or not
+ * @param  {String} userOrganization The user/organization file that contains their relationship
+ * @param  {String} userId           The user you want to check out
+ * @param  {String} orgId            The organization you want to check out
+ * @return {String}                  The result that shows the relationship exists or not
+ */
 var checkUserOrganizationRelationship = function(userOrganization, userId, orgId) {
   return new Promise(function(resolve, reject) {
     var userOrganizationRelationship = 0;
