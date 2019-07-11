@@ -71,7 +71,7 @@ The following command would list all users under the workspace 1.
 
 ```
 $ curl -X GET http://localhost:3000/workspace/1/user
-{"message":["success"],"users":[{"id":"1","name":"Hewe Kettleson","email":"hkettleson0@yellowpages.com"},{"id":"2","name":"Hershel Hamerton","email":"hhamerton1@rakuten.co.jp"},{"id":"3","name":"Andonis Gatheral","email":"agatheral2@dailymail.co.uk"}]}
+{"message":["success"],"users":[{"id":"1","name":"Hewe Kettleson","email":"hkettleson0@yellowpages.com","existed":"1"},{"id":"2","name":"Hershel Hamerton","email":"hhamerton1@rakuten.co.jp","existed":"1"},{"id":"3","name":"Andonis Gatheral","email":"agatheral2@dailymail.co.uk","existed":"1"}]}
 ```
 
 ### Delete a workspace
@@ -79,6 +79,6 @@ $ curl -X GET http://localhost:3000/workspace/1/user
 The following command would delete the workspaceId 2 from the workspace, and delete the relationship with users at the same time.
 
 ```
-curl -d "workspaceId=2" -X DELETE http://localhost:3000/workspace
+curl -d "workspaceId=1" -X DELETE http://localhost:3000/workspace
 {"message":["success"]}
 ```
