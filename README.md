@@ -40,7 +40,7 @@ Please see below to use five features in this app.
 
 You need to provide name and org_ig. The id for the new workspace would be generated automatically.
 
-For example, you can create a new workspace by using the following command. The workspace name is One, and this workspace belongs to org_id 1.
+For example, you can create a new workspace by using the following command. The workspace name is One, and this workspace belongs to the organization with org_id 1.
 
 ```
 $ curl -d "name=One&org_id=1" -X POST http://localhost:3000/workspace
@@ -58,14 +58,14 @@ $ curl -X GET http://localhost:3000/workspace
 
 ### Add an existing user as a collaborator to an existing workspace
 
-The following command would add one more relationship. The userId is 1, and it's for workspace 1.
+The following command would add one more relationship. The userId is 1, and it's for Workspace 1.
 
 ```
 $ curl -d "userId=1" -X POST http://localhost:3000/workspace/1/user
 {"message":["success"]}
 ```
 
-The following command would not add one more relationship. The reason is that Organization 1 owns Workspace 1, but User 6 is not at Organization 1.
+The following command would not add one more relationship. The reason is that the organization with org_id 1 owns the workspace with workspace_id 1, but the user with user_id 6 is not at the organization with org_id 1.
 
 ```
 $ curl -d "userId=6" -X POST http://localhost:3000/workspace/1/user
@@ -74,7 +74,7 @@ $ curl -d "userId=6" -X POST http://localhost:3000/workspace/1/user
 
 ### List the collaborators of a workspace
 
-The following command would list all users under Workspace 1.
+The following command would list all users under the workspace with workspace_id 1.
 
 ```
 $ curl -X GET http://localhost:3000/workspace/1/user
@@ -83,7 +83,7 @@ $ curl -X GET http://localhost:3000/workspace/1/user
 
 ### Delete a workspace
 
-The following command would delete the workspaceId 1 from the workspace, and delete the relationship with users at the same time.
+The following command would delete the workspace with workspaceId 1 from the workspace, and delete the relationship with users at the same time.
 
 ```
 curl -d "workspaceId=1" -X DELETE http://localhost:3000/workspace
