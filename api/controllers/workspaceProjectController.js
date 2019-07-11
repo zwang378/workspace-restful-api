@@ -3,7 +3,7 @@
 const fs = require('fs');
 const csv = require('csv-parser');
 
-exports.list_all_workspaces = function(req, res) {
+exports.listAllWorkspaces = function(req, res) {
   var path = './data/workspace.csv';
   var header = 'id,name,org_id,existed\n';
   
@@ -24,7 +24,7 @@ exports.list_all_workspaces = function(req, res) {
     });
 };
 
-exports.create_a_workspace = function(req, res) {
+exports.createAWorkspace = function(req, res) {
   var path = './data/workspace.csv';
   var header = 'id,name,org_id,existed\n';
 
@@ -46,12 +46,7 @@ exports.create_a_workspace = function(req, res) {
     });
 };
 
-// This function does not check if it is an existing user id
-// since it is for an existing user id.
-//
-// This function does not check whether the workspaceId is valid or not,
-// and we can implement it by iterating the workspace file.
-exports.add_an_existing_user_to_a_workspace = function(req, res) {
+exports.addAnExistingUserToAWorkspace = function(req, res) {
   var path = './data/workspace_collaborator.csv';
   var header = 'user_id,workspace_id\n';
   var rowData = req.body.userId + ',' + req.params.workspaceId + '\n';
@@ -70,7 +65,7 @@ exports.add_an_existing_user_to_a_workspace = function(req, res) {
     });
 };
 
-exports.list_all_collaborators = function(req, res) {
+exports.listAllCollaborators = function(req, res) {
   var sourcePath = './data/workspace_collaborator.csv';
   var targetPath = './data/user.csv';
   var header = 'user_id,workspace_id\n';
@@ -96,7 +91,7 @@ exports.list_all_collaborators = function(req, res) {
     });
 };
 
-exports.delete_a_workspace = function(req, res) {
+exports.deleteAWorkspace = function(req, res) {
   var workspacePath = './data/workspace.csv';
   var workspaceHeader = 'id,name,org_id,existed\n';
   var workspaceCollaboratorPath = './data/workspace_collaborator.csv';
