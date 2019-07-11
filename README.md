@@ -32,7 +32,7 @@ It's a good idea to install nodemon because it can restart the app automatically
 npm install -g nodemon
 ```
 
-## Use this API
+## Try out this API
 
 Please see below to use five features in this app.
 
@@ -40,7 +40,7 @@ Please see below to use five features in this app.
 
 You need to provide name and org_ig. The id for the new workspace would be generated automatically.
 
-For example, you can create a new workspace by using the following command. The workspace name is Eleven, and this workspace belongs to org_id 9.
+For example, you can create a new workspace by using the following command. The workspace name is One, and this workspace belongs to org_id 1.
 
 ```
 $ curl -d "name=One&org_id=1" -X POST http://localhost:3000/workspace
@@ -49,7 +49,7 @@ $ curl -d "name=One&org_id=1" -X POST http://localhost:3000/workspace
 
 ### List workspace
 
-The response would have all workspaces and their information, including id, name, and org_id.
+The response would have all workspaces and their information.
 
 ```
 $ curl -X GET http://localhost:3000/workspace
@@ -74,7 +74,7 @@ $ curl -d "userId=6" -X POST http://localhost:3000/workspace/1/user
 
 ### List the collaborators of a workspace
 
-The following command would list all users under the workspace 1.
+The following command would list all users under Workspace 1.
 
 ```
 $ curl -X GET http://localhost:3000/workspace/1/user
