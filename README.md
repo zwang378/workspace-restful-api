@@ -32,7 +32,7 @@ It's a good idea to install nodemon because it can restart the app automatically
 npm install -g nodemon
 ```
 
-## Use this app
+## Use this API
 
 Please see below to use five features in this app.
 
@@ -43,7 +43,8 @@ You need to provide name and org_ig. The id for the new workspace would be gener
 For example, you can create a new workspace by using the following command. The workspace name is Eleven, and this workspace belongs to org_id 9.
 
 ```
-curl -d "name=Eleven&org_id=9" -X POST http://localhost:3000/workspace
+$ curl -d "name=Eleven&org_id=9" -X POST http://localhost:3000/workspace
+{"message":["success"]}
 ```
 
 ### List workspace
@@ -51,7 +52,8 @@ curl -d "name=Eleven&org_id=9" -X POST http://localhost:3000/workspace
 The response would have all workspaces and their information, including id, name, and org_id.
 
 ```
-curl -X GET http://localhost:3000/workspace
+$ curl -X GET http://localhost:3000/workspace
+{"message":["success"],"workspaces":[{"id":"1","name":"Cardify","org_id":"1","existed":"1"},{"id":"4","name":"Aerified","org_id":"3","existed":"1"},{"id":"5","name":"Tresom","org_id":"4","existed":"1"},{"id":"6","name":"Asoka","org_id":"4","existed":"1"},{"id":"7","name":"Pannier","org_id":"5","existed":"1"},{"id":"8","name":"Sonsing","org_id":"6","existed":"1"},{"id":"9","name":"Bigtax","org_id":"7","existed":"1"},{"id":"10","name":"Stronghold","org_id":"9","existed":"1"}]}
 ```
 
 ### Add an existing user as a collaborator to an existing workspace
@@ -59,15 +61,17 @@ curl -X GET http://localhost:3000/workspace
 The following command would add one more relationship. The userId is 5, and it's for workspace 6.
 
 ```
-curl -d "userId=5" -X POST http://localhost:3000/workspace/6/user
+$ curl -d "userId=5" -X POST http://localhost:3000/workspace/6/user
+{"message":["success"]}
 ```
 
 ### List the collaborators of a workspace
 
-The following command would list all users under the workspace 2.
+The following command would list all users under the workspace 1.
 
 ```
-curl -X GET http://localhost:3000/workspace/2/user
+$ curl -X GET http://localhost:3000/workspace/1/user
+{"message":["success"],"users":[{"id":"1","name":"Hewe Kettleson","email":"hkettleson0@yellowpages.com"},{"id":"2","name":"Hershel Hamerton","email":"hhamerton1@rakuten.co.jp"},{"id":"3","name":"Andonis Gatheral","email":"agatheral2@dailymail.co.uk"}]}
 ```
 
 ### Delete a workspace
@@ -76,4 +80,5 @@ The following command would delete the workspaceId 2 from the workspace, and del
 
 ```
 curl -d "workspaceId=2" -X DELETE http://localhost:3000/workspace
+{"message":["success"]}
 ```
