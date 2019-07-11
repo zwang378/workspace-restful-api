@@ -292,7 +292,7 @@ var findNewRowIdPromise = function(path) {
       .on('end', () => {
         var newId;
 
-        if (lastRow == undefined) {
+        if (lastRow === undefined) {
           newId = 1;
         } else {
           newId = parseInt(lastRow.id, 10) + 1;
@@ -396,7 +396,7 @@ var findOrganizationBasedOnWorkspace = function(workspaceOrganization, workspace
         }
       })
       .on('end', () => {
-        if (orgIdResult == undefined) {
+        if (orgIdResult === undefined) {
           reject('Could not find your workspace');
         } else {
           resolve(orgIdResult);
