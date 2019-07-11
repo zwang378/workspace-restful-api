@@ -292,7 +292,7 @@ var findNewRowIdPromise = function(path) {
       .on('end', () => {
         var newId;
 
-        if (lastRow === undefined) {
+        if (lastRow == undefined) {
           newId = 1;
         } else {
           newId = parseInt(lastRow.id, 10) + 1;
@@ -322,7 +322,7 @@ var appendRowDataPromise = function(path, rowData) {
 };
 
 /**
- * Make data "existed" 0 instead of removing data
+ * Make data "existed" 0 instead of removing data, no matter what
  * @param  {string}     header    The header of your target file
  * @param  {JSON array} rows      Data which contain data entry you want to delete
  * @param  {string}     targetCol The column that contains the item you want to delete
