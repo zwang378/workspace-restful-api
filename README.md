@@ -58,11 +58,18 @@ $ curl -X GET http://localhost:3000/workspace
 
 ### Add an existing user as a collaborator to an existing workspace
 
-The following command would add one more relationship. The userId is 5, and it's for workspace 6.
+The following command would add one more relationship. The userId is 1, and it's for workspace 1.
 
 ```
-$ curl -d "userId=5" -X POST http://localhost:3000/workspace/6/user
+$ curl -d "userId=1" -X POST http://localhost:3000/workspace/1/user
 {"message":["success"]}
+```
+
+The following command would not add one more relationship. The reason is that Organization 1 owns Workspace 1, but User 6 is not at Organization 1.
+
+```
+$ curl -d "userId=6" -X POST http://localhost:3000/workspace/1/user
+{"message":["Please add this user to the corresponding organization first"]}
 ```
 
 ### List the collaborators of a workspace
