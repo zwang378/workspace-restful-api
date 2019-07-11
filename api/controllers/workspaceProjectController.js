@@ -312,7 +312,7 @@ var appendRowDataPromise = function(path, rowData) {
 };
 
 /**
- * Make data "exsited" 0 instead of removing data
+ * Make data "existed" 0 instead of removing data
  * @param  {String}     header    The header of your target file
  * @param  {JSON array} rows      Data which contain data entry you want to delete
  * @param  {String}     targetCol The column that contains the item you want to delete
