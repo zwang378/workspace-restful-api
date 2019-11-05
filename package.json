@@ -19,7 +19,7 @@
     "csv-writer": "^1.4.0",
     "express": "^4.17.1",
     "fast-csv": "^3.0.1",
-    "mongoose": "^5.6.2",
+    "mongoose": "^5.7.5",
     "writer": "^1.0.0"
   }
 }
