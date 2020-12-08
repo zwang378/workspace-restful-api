@@ -18,7 +18,7 @@
     "csv-parser": "^2.3.0",
     "csv-writer": "^1.4.0",
     "express": "^4.17.1",
-    "fast-csv": "^3.0.1",
+    "fast-csv": "^4.3.6",
     "mongoose": "^5.6.2",
     "writer": "^1.0.0"
   }
